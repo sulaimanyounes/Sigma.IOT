@@ -30,7 +30,7 @@ namespace Sigma.IOT.API.Services.Forecast
 
                 ProcessMemoryStream(out List<Entities.Forecast.Forecast> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
 
-                return MapResult(pageNumber, pageSize, totalLines, response);
+                return MapResult(pageNumber, pageSize, totalLines, response.Count(), response);
             }
             catch (Exception)
             {
@@ -61,7 +61,7 @@ namespace Sigma.IOT.API.Services.Forecast
 
                 IEnumerable<Entities.Forecast.Forecast> responseGroup = ApplyGroupBy(allResponse);
 
-                return MapResult(pageNumber, pageSize, totLines, responseGroup);
+                return MapResult(pageNumber, pageSize, totLines, responseGroup.Count(), responseGroup);
             }
             catch (Exception)
             {
@@ -87,7 +87,7 @@ namespace Sigma.IOT.API.Services.Forecast
                    };
         }
 
-        private static ApiResult<Entities.Forecast.Forecast> MapResult(int pageNumber, int pageSize, long totLines, IEnumerable<Entities.Forecast.Forecast> response)
+        private static ApiResult<Entities.Forecast.Forecast> MapResult(int pageNumber, int pageSize, long totLines, long totalItemsReturned, IEnumerable<Entities.Forecast.Forecast> response)
         {
             var result = new ApiResult<Entities.Forecast.Forecast>()
             {
@@ -95,6 +95,7 @@ namespace Sigma.IOT.API.Services.Forecast
                 TotalLines = totLines,
                 PageSize = pageSize,
                 PageNumber = pageNumber,
+                TotalItemsReturned = totalItemsReturned
             };
 
             result.GetResult();

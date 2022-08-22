@@ -8,6 +8,7 @@
         public long TotalLines { get; set; }
         public decimal PageSize { get; set; }
         public decimal PageNumber { get; set; }
+        public long TotalItemsReturned { get; set; }
         public decimal TotalPages
         {
             get
