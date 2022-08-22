@@ -15,7 +15,7 @@ namespace Sigma.IOT.API.Services.Forecast
             _forecastStorageRepository = forecastStorageRepository;
         }
 
-        public async Task<ApiResult<ForecastItem>> List(string device, string date, string sensor, int pageNumber, int pageSize)
+        public async Task<ApiResult<Entities.Forecast.Forecast>> List(string device, string date, string sensor, int pageNumber, int pageSize)
         {
             try
             {
@@ -23,9 +23,9 @@ namespace Sigma.IOT.API.Services.Forecast
 
                 var memoryStream = await _forecastStorageRepository.GetBlobStorage(blobName);
 
-                ProcessMemoryStream(out List<ForecastItem> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
+                ProcessMemoryStream(out List<Entities.Forecast.Forecast> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
 
-                var result = new ApiResult<ForecastItem>()
+                var result = new ApiResult<Entities.Forecast.Forecast>()
                 {
                     Object = response,
                     TotalLines = totalLines,
@@ -46,7 +46,7 @@ namespace Sigma.IOT.API.Services.Forecast
         {
             long totLines = 0;
 
-            List<ForecastItem> allResponse = new List<ForecastItem>();
+            List<Entities.Forecast.Forecast> allResponse = new List<Entities.Forecast.Forecast>();
 
             try
             {
@@ -56,7 +56,7 @@ namespace Sigma.IOT.API.Services.Forecast
 
                     var memoryStream = await _forecastStorageRepository.GetBlobStorage(blobName);
 
-                    ProcessMemoryStream(out List<ForecastItem> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
+                    ProcessMemoryStream(out List<Entities.Forecast.Forecast> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
 
                     allResponse.AddRange(response);
 
@@ -64,7 +64,7 @@ namespace Sigma.IOT.API.Services.Forecast
                 }
 
                 var responseGroup = from response in allResponse
-                                    group (response.Measurement) by response.Date into g
+                                    group (response.Measurements?.FirstOrDefault()) by response.Date into g
                                     orderby g.Key
                                     select new ForecastItemAll() { 
                                         Date = g.Key,
@@ -91,7 +91,7 @@ namespace Sigma.IOT.API.Services.Forecast
             }
         }
 
-        private void ProcessMemoryStream(out List<ForecastItem> response, 
+        private void ProcessMemoryStream(out List<Entities.Forecast.Forecast> response, 
                                          string sensor, 
                                          MemoryStream memoryStream, 
                                          ref int pageNumber, 
@@ -101,14 +101,14 @@ namespace Sigma.IOT.API.Services.Forecast
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 100;
 
-            response = new List<ForecastItem>();
+            response = new List<Entities.Forecast.Forecast>();
 
             string[] read;
             char[] seperators = { ';' };
             string? line;
             Regex regex = new Regex(@"^\-,");
 
-            List<ForecastItem> items = new List<ForecastItem>();
+            List<Entities.Forecast.Forecast> items = new List<Entities.Forecast.Forecast>();
 
             using (StreamReader reader = new StreamReader(memoryStream))
             {
@@ -117,14 +117,17 @@ namespace Sigma.IOT.API.Services.Forecast
                     read = line.Split(seperators, StringSplitOptions.None);
 
                     if (read.Length > 0)
-                        items.Add(new ForecastItem
+                        items.Add(new Entities.Forecast.Forecast
                         {
                             Date = DateTime.Parse(read[0]),
-                            Measurement = new Measurement()
-                            {
-                                Value = regex.IsMatch(read[1]) ? float.Parse("-0." + read[1].Substring(2))
-                                                                               : float.Parse(read[1].Replace(",", ".")),
-                                SensorType = sensor }
+                            Measurements = new List<Measurement>()
+                            { new Measurement 
+                                {
+                                    Value = regex.IsMatch(read[1]) ? float.Parse("-0." + read[1].Substring(2))
+                                                                                   : float.Parse(read[1].Replace(",", ".")),
+                                    SensorType = sensor 
+                                }
+                            }
                         });
                 }
             }
