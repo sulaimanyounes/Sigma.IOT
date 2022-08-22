@@ -18,6 +18,15 @@ namespace Sigma.IOT.API.Controllers.v1
             _forecastService = forecastService;
         }
 
+        /// <summary>
+        /// Endpoint to list the forecast measurments by sensor
+        /// </summary>
+        /// <param name="device">device unit name, example "dockan"</param>
+        /// <param name="date">date of the collected forcasts, format yyyy-MM-dd, example "2019-01-10"</param>
+        /// <param name="sensor"> Sensor type, example temperature, humidity or rainfall</param>
+        /// <param name="pageNumber">Page number</param>
+        /// <param name="pageSize">Number of objetcs per page</param>
+        /// <returns>List of measurments for a specified sensor</returns>
         [HttpGet("devices/{device}/data/{date}/{sensor}")]
         public async Task<IActionResult> CollectMeasurementsByUnitAndSensor(string device, string date, string sensor, int pageNumber, int pageSize)
         {
@@ -26,6 +35,14 @@ namespace Sigma.IOT.API.Controllers.v1
             return Ok(results);
         }
 
+        /// <summary>
+        /// Endpoint to list the forecast measurments for all sensors
+        /// </summary>
+        /// <param name="device">device unit name, example "dockan"</param>
+        /// <param name="date">date of the collected forcasts, format yyyy-MM-dd, example "2019-01-10"</param>
+        /// <param name="pageNumber">Page number</param>
+        /// <param name="pageSize">Number of objetcs per page</param>
+        /// <returns>List of measurments for all sensors</returns>
         [HttpGet("devices/{device}/data/{date}")]
         public async Task<IActionResult> CollectAllMeasurementsByUnit(string device, string date, int pageNumber, int pageSize)
         {

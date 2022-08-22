@@ -59,7 +59,7 @@ namespace Sigma.IOT.API.Services.Forecast
                     if (totLines < totalLines) totLines = totalLines;
                 }
 
-                IEnumerable<Entities.Forecast.Forecast> responseGroup = ApplyGroup(allResponse);
+                IEnumerable<Entities.Forecast.Forecast> responseGroup = ApplyGroupBy(allResponse);
 
                 return MapResult(pageNumber, pageSize, totLines, responseGroup);
             }
@@ -71,9 +71,9 @@ namespace Sigma.IOT.API.Services.Forecast
         #endregion
 
         #region PRIVATE METHODS
-        private static IEnumerable<Entities.Forecast.Forecast> ApplyGroup(List<Entities.Forecast.Forecast> allResponse)
+        private static IEnumerable<Entities.Forecast.Forecast> ApplyGroupBy(List<Entities.Forecast.Forecast> responseList)
         {
-            return from response in allResponse
+            return from response in responseList
                    group (response.Measurements?.FirstOrDefault()) by response.Date into g
                    orderby g.Key
                    select new Entities.Forecast.Forecast()
@@ -109,7 +109,7 @@ namespace Sigma.IOT.API.Services.Forecast
                                          out long totalLines)
         {
             if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 100;
+            if (pageSize <= 0 || pageSize > 100) pageSize = 100;
 
             response = new List<Entities.Forecast.Forecast>();
 

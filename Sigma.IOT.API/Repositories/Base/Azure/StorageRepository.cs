@@ -4,14 +4,22 @@ namespace Sigma.IOT.API.Repositories.Base.Azure
 {
     public class StorageRepository : IStorageRepository
     {
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration? _configuration;
 
-        private string? BlobEndpoint { get => _configuration.GetSection("Azure")["BlobEndpoint"]; }
-        private string? ContainerName { get => _configuration.GetSection("Azure")["ContainerName"]; }
+        private string? BlobEndpoint { get => _configuration?.GetSection("Azure")["BlobEndpoint"]; }
+        private string? ContainerName { get => _configuration?.GetSection("Azure")["ContainerName"]; }
+
+        public IConfiguration? configuration
+        {
+            get
+            {
+                return _configuration;
+            }
+        }
 
         private BlobServiceClient _client;
 
-        public StorageRepository(IConfiguration configuration)
+        public StorageRepository(IConfiguration? configuration)
         {
             _configuration = configuration;
 
@@ -28,11 +36,11 @@ namespace Sigma.IOT.API.Repositories.Base.Azure
 
         private async Task GetStorage(string blobName, MemoryStream memoryStream)
         {
-            if (await _client.GetBlobContainerClient(ContainerName).ExistsAsync())
+            if (ContainerExists(ContainerName))
             {
                 var container = _client.GetBlobContainerClient(ContainerName);
 
-                if (await container.GetBlobClient(blobName).ExistsAsync())
+                if (BlobClientExists(container, blobName))
                 {
                     BlobClient blobClient = container.GetBlobClient(blobName);
 
@@ -41,6 +49,16 @@ namespace Sigma.IOT.API.Repositories.Base.Azure
                     memoryStream.Position = 0;
                 }
             }
+        }
+
+        public bool ContainerExists(string? ContainerName)
+        {
+            return _client.GetBlobContainerClient(ContainerName).Exists();
+        }
+
+        public bool BlobClientExists(BlobContainerClient container, string? blobName)
+        {
+            return container.GetBlobClient(blobName).Exists();
         }
     }
 }
