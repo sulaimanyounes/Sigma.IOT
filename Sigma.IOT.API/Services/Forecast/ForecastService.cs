@@ -30,7 +30,7 @@ namespace Sigma.IOT.API.Services.Forecast
                     Object = response,
                     TotalLines = totalLines,
                     PageSize = pageSize,
-                    PageNumber = ++pageNumber,
+                    PageNumber = pageNumber,
                     Success = true
                 };
 
@@ -42,11 +42,9 @@ namespace Sigma.IOT.API.Services.Forecast
             }
         }
 
-        public async Task<ApiResult<ForecastItem>> List(string device, string date, int pageNumber, int pageSize)
+        public async Task<ApiResult<ForecastItemAll>> List(string device, string date, int pageNumber, int pageSize)
         {
             long totLines = 0;
-
-            pageSize = pageSize/Enum.GetNames(typeof(SensorEnum)).Length;
 
             List<ForecastItem> allResponse = new List<ForecastItem>();
 
@@ -61,14 +59,26 @@ namespace Sigma.IOT.API.Services.Forecast
                     ProcessMemoryStream(out List<ForecastItem> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
 
                     allResponse.AddRange(response);
-                    totLines += totalLines;
+
+                    if (totLines < totalLines) totLines = totalLines;
                 }
 
-                var result =  new ApiResult<ForecastItem>()
+                var responseGroup = from response in allResponse
+                                    group (response.Measurement) by response.Date into g
+                                    orderby g.Key
+                                    select new ForecastItemAll() { 
+                                        Date = g.Key,
+                                        Measurements = g.Select(s => new Measurement() { 
+                                        SensorType = s.SensorType, 
+                                        Value = s.Value})
+                                        };
+
+
+                var result =  new ApiResult<ForecastItemAll>()
                 {
-                    Object = allResponse,
+                    Object = responseGroup.ToList(),
                     TotalLines = totLines,
-                    PageSize = pageSize*Enum.GetNames(typeof(SensorEnum)).Length,
+                    PageSize = pageSize,
                     PageNumber = pageNumber,
                     Success = true
                 };
@@ -110,9 +120,11 @@ namespace Sigma.IOT.API.Services.Forecast
                         items.Add(new ForecastItem
                         {
                             Date = DateTime.Parse(read[0]),
-                            Value = regex.IsMatch(read[1]) ? float.Parse("-0." + read[1].Substring(2))
-                                                           : float.Parse(read[1].Replace(",", ".")),
-                            SensorType = sensor
+                            Measurement = new Measurement()
+                            {
+                                Value = regex.IsMatch(read[1]) ? float.Parse("-0." + read[1].Substring(2))
+                                                                               : float.Parse(read[1].Replace(",", ".")),
+                                SensorType = sensor }
                         });
                 }
             }
