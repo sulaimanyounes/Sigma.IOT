@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Sigma.IOT.API.Repositories.Base.Azure;
 using Sigma.IOT.API.Repositories.Forecast;
 using Sigma.IOT.API.Services.Forecast;
-using ViaVarejo.Integracao.CrossCutting.Helpers.CsvHelper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,9 +21,6 @@ builder.Services.AddApiVersioning(options =>
 builder.Services.AddScoped<IForecastService, ForecastService>();
 builder.Services.AddScoped<IForecastStorageRepository, ForecastStorageRepository>();
 builder.Services.AddScoped<IStorageRepository, StorageRepository>();
-builder.Services.AddScoped<IForecastService, ForecastService>();
-
-builder.Services.AddTransient<ICsvFileHelper, CsvFileHelper>();
 
 var app = builder.Build();
 

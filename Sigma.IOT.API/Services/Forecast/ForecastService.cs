@@ -27,12 +27,13 @@ namespace Sigma.IOT.API.Services.Forecast
 
                 var result = new ApiResult<Entities.Forecast.Forecast>()
                 {
-                    Object = response,
+                    Object = response.ToList(),
                     TotalLines = totalLines,
                     PageSize = pageSize,
-                    PageNumber = pageNumber,
-                    Success = true
+                    PageNumber = pageNumber
                 };
+
+                result.GetResult();
 
                 return result;
             }
@@ -42,7 +43,7 @@ namespace Sigma.IOT.API.Services.Forecast
             }
         }
 
-        public async Task<ApiResult<ForecastItemAll>> List(string device, string date, int pageNumber, int pageSize)
+        public async Task<ApiResult<Entities.Forecast.Forecast>> List(string device, string date, int pageNumber, int pageSize)
         {
             long totLines = 0;
 
@@ -66,7 +67,7 @@ namespace Sigma.IOT.API.Services.Forecast
                 var responseGroup = from response in allResponse
                                     group (response.Measurements?.FirstOrDefault()) by response.Date into g
                                     orderby g.Key
-                                    select new ForecastItemAll() { 
+                                    select new Entities.Forecast.Forecast() { 
                                         Date = g.Key,
                                         Measurements = g.Select(s => new Measurement() { 
                                         SensorType = s.SensorType, 
@@ -74,14 +75,15 @@ namespace Sigma.IOT.API.Services.Forecast
                                         };
 
 
-                var result =  new ApiResult<ForecastItemAll>()
+                var result =  new ApiResult<Entities.Forecast.Forecast>()
                 {
                     Object = responseGroup.ToList(),
                     TotalLines = totLines,
                     PageSize = pageSize,
                     PageNumber = pageNumber,
-                    Success = true
                 };
+
+                result.GetResult();
 
                 return result;
             }
