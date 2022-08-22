@@ -8,13 +8,18 @@ namespace Sigma.IOT.API.Services.Forecast
 {
     public class ForecastService : IForecastService
     {
+        #region VARS
         private readonly IForecastStorageRepository _forecastStorageRepository;
+        #endregion
 
+        #region CONSTRUCTOR
         public ForecastService(IForecastStorageRepository forecastStorageRepository)
         {
             _forecastStorageRepository = forecastStorageRepository;
         }
+        #endregion
 
+        #region PUBLIC METHODS
         public async Task<ApiResult<Entities.Forecast.Forecast>> List(string device, string date, string sensor, int pageNumber, int pageSize)
         {
             try
@@ -25,17 +30,7 @@ namespace Sigma.IOT.API.Services.Forecast
 
                 ProcessMemoryStream(out List<Entities.Forecast.Forecast> response, sensor, memoryStream, ref pageNumber, ref pageSize, out long totalLines);
 
-                var result = new ApiResult<Entities.Forecast.Forecast>()
-                {
-                    Object = response.ToList(),
-                    TotalLines = totalLines,
-                    PageSize = pageSize,
-                    PageNumber = pageNumber
-                };
-
-                result.GetResult();
-
-                return result;
+                return MapResult(pageNumber, pageSize, totalLines, response);
             }
             catch (Exception)
             {
@@ -64,33 +59,46 @@ namespace Sigma.IOT.API.Services.Forecast
                     if (totLines < totalLines) totLines = totalLines;
                 }
 
-                var responseGroup = from response in allResponse
-                                    group (response.Measurements?.FirstOrDefault()) by response.Date into g
-                                    orderby g.Key
-                                    select new Entities.Forecast.Forecast() { 
-                                        Date = g.Key,
-                                        Measurements = g.Select(s => new Measurement() { 
-                                        SensorType = s.SensorType, 
-                                        Value = s.Value})
-                                        };
+                IEnumerable<Entities.Forecast.Forecast> responseGroup = ApplyGroup(allResponse);
 
-
-                var result =  new ApiResult<Entities.Forecast.Forecast>()
-                {
-                    Object = responseGroup.ToList(),
-                    TotalLines = totLines,
-                    PageSize = pageSize,
-                    PageNumber = pageNumber,
-                };
-
-                result.GetResult();
-
-                return result;
+                return MapResult(pageNumber, pageSize, totLines, responseGroup);
             }
             catch (Exception)
             {
                 throw;
             }
+        }
+        #endregion
+
+        #region PRIVATE METHODS
+        private static IEnumerable<Entities.Forecast.Forecast> ApplyGroup(List<Entities.Forecast.Forecast> allResponse)
+        {
+            return from response in allResponse
+                   group (response.Measurements?.FirstOrDefault()) by response.Date into g
+                   orderby g.Key
+                   select new Entities.Forecast.Forecast()
+                   {
+                       Date = g.Key,
+                       Measurements = g.Select(s => new Measurement()
+                       {
+                           SensorType = s.SensorType,
+                           Value = s.Value
+                       })
+                   };
+        }
+
+        private static ApiResult<Entities.Forecast.Forecast> MapResult(int pageNumber, int pageSize, long totLines, IEnumerable<Entities.Forecast.Forecast> response)
+        {
+            var result = new ApiResult<Entities.Forecast.Forecast>()
+            {
+                Object = response.ToList(),
+                TotalLines = totLines,
+                PageSize = pageSize,
+                PageNumber = pageNumber,
+            };
+
+            result.GetResult();
+            return result;
         }
 
         private void ProcessMemoryStream(out List<Entities.Forecast.Forecast> response, 
@@ -138,5 +146,7 @@ namespace Sigma.IOT.API.Services.Forecast
 
             response.AddRange(items.Skip(pageSize*(pageNumber-1)).Take(pageSize));
         }
+
+        #endregion
     }
 }
