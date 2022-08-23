@@ -13,7 +13,7 @@ namespace Sigma.IOT.API.Services.Forecast
         private readonly IForecastStorageRepository _forecastStorageRepository;
         #endregion
 
-        private int MaxItemsPerPage => _configuration?.GetValue<int>("MaxItemsPerPage") ?? 100;
+        private int MaxItemsPerPage => _configuration.GetValue<int>("MaxItemsPerPage");
 
         #region CONSTRUCTOR
         public ForecastService(IConfiguration? configuration,
