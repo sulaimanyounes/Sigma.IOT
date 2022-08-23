@@ -104,6 +104,7 @@ namespace Sigma.IOT.API.Services.Forecast
             };
 
             result.GetResult();
+
             return result;
         }
 
