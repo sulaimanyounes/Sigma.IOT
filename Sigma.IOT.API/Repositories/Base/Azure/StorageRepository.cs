@@ -6,16 +6,9 @@ namespace Sigma.IOT.API.Repositories.Base.Azure
     {
         private readonly IConfiguration? _configuration;
 
-        private string? BlobEndpoint { get => _configuration?.GetSection("Azure")["BlobEndpoint"]; }
-        private string? ContainerName { get => _configuration?.GetSection("Azure")["ContainerName"]; }
-
-        public IConfiguration? configuration
-        {
-            get
-            {
-                return _configuration;
-            }
-        }
+        private string? BlobEndpoint { get => Configuration?.GetSection("Azure")["BlobEndpoint"]; }
+        private string? ContainerName { get => Configuration?.GetSection("Azure")["ContainerName"]; }
+        public IConfiguration? Configuration => _configuration;
 
         private BlobServiceClient _client;
 
