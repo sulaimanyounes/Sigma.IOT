@@ -9,12 +9,17 @@ namespace Sigma.IOT.API.Services.Forecast
     public class ForecastService : IForecastService
     {
         #region VARS
+        private readonly IConfiguration? _configuration;
         private readonly IForecastStorageRepository _forecastStorageRepository;
         #endregion
 
+        private int MaxItemsPerPage => _configuration?.GetValue<int>("MaxItemsPerPage") ?? 100;
+
         #region CONSTRUCTOR
-        public ForecastService(IForecastStorageRepository forecastStorageRepository)
+        public ForecastService(IConfiguration? configuration,
+                               IForecastStorageRepository forecastStorageRepository)
         {
+            _configuration = configuration;
             _forecastStorageRepository = forecastStorageRepository;
         }
         #endregion
@@ -110,7 +115,7 @@ namespace Sigma.IOT.API.Services.Forecast
                                          out long totalLines)
         {
             if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0 || pageSize > 100) pageSize = 100;
+            if (pageSize <= 0 || pageSize > MaxItemsPerPage) pageSize = MaxItemsPerPage;
 
             response = new List<Entities.Forecast.Forecast>();
 
