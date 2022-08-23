@@ -23,7 +23,25 @@ namespace Sigma.IOT.MSTest
         }
 
         [TestMethod]
-        public void BlobStorageTest()
+        public void BlobEndPointTest()
+        {
+            var storage = new StorageRepository(configuration);
+
+            Assert.AreEqual(configuration?.GetSection("Azure")["BlobEndpoint"], storage.configuration?.GetSection("Azure")["BlobEndpoint"]);
+        }
+
+        [TestMethod]
+        public void ContainerTest()
+        {
+            var storage = new StorageRepository(configuration);
+
+            var containerName = storage.configuration?.GetSection("Azure")["ContainerName"];
+
+            Assert.IsTrue(storage.ContainerExists(containerName));
+        }
+
+        [TestMethod]
+        public void BlobClientTest()
         {
             var storage = new StorageRepository(configuration);
 
@@ -34,10 +52,7 @@ namespace Sigma.IOT.MSTest
             var client = new BlobServiceClient(blobeEndPoint);
             var container = client.GetBlobContainerClient(containerName);
 
-            Assert.AreEqual(configuration?.GetSection("Azure")["BlobEndpoint"], storage.configuration?.GetSection("Azure")["BlobEndpoint"]);
-            Assert.IsTrue(storage.ContainerExists(containerName));
             Assert.IsTrue(storage.BlobClientExists(container, $"{blobName}.csv"));
-            Assert.IsFalse(storage.BlobClientExists(container, $"{blobName}"));
         }
     }
 }

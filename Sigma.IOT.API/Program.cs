@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Sigma.IOT.API.Extentions;
 using Sigma.IOT.API.Repositories.Base.Azure;
 using Sigma.IOT.API.Repositories.Forecast;
 using Sigma.IOT.API.Services.Forecast;
@@ -18,9 +19,7 @@ builder.Services.AddApiVersioning(options =>
     options.DefaultApiVersion = new ApiVersion(1, 0);
 });
 
-builder.Services.AddScoped<IForecastService, ForecastService>();
-builder.Services.AddScoped<IForecastStorageRepository, ForecastStorageRepository>();
-builder.Services.AddScoped<IStorageRepository, StorageRepository>();
+builder.Services.AddDependencies();
 
 var app = builder.Build();
 
